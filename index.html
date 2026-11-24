@@ -28,6 +28,9 @@ label{display:block;margin:10px 0 4px;font-weight:600}input[type=text],input[typ
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.stats div{border:1px solid var(--line);border-radius:6px;padding:10px}
 .ex{border-left:3px solid var(--acc);padding-left:12px;margin-top:10px}
 @media(max-width:780px){.wrap{grid-template-columns:1fr}}
+body{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.one,.wrap{padding-top:env(safe-area-inset-top,0px)}.bar+.one,.bar+.wrap{padding-top:0}
+.bar{padding-top:calc(10px + env(safe-area-inset-top,0px))}
 </style></head><body><div id="app"></div>
 <script>
 const EX={
