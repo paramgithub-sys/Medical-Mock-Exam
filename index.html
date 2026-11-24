@@ -72,6 +72,12 @@ for(const q of draft.qs){q.img=await rs(q.img);q.eimg=await rs(q.eimg)}
 imgStatus(miss)}catch(x){$('#ferr').textContent='Could not read file: '+(x.message||x)}}}
 const SIZE={'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
 const SUBJ='Medicine, Surgery, Obstetrics, Gynaecology, Paediatrics, Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, Microbiology, PSM, Forensic Medicine, ENT, Ophthalmology, Orthopaedics, Dermatology, Psychiatry, Anaesthesia, Radiology';
+const AIS=[{n:'Claude',base:'https://claude.ai/new',q:'https://claude.ai/new?q='},{n:'ChatGPT',base:'https://chatgpt.com/',q:'https://chatgpt.com/?q='},{n:'Perplexity',base:'https://www.perplexity.ai/',q:'https://www.perplexity.ai/search?q='},{n:'Grok',base:'https://grok.com/',q:'https://grok.com/?q='},{n:'Gemini',base:'https://gemini.google.com/app'},{n:'Copilot',base:'https://copilot.microsoft.com/'},{n:'DeepSeek',base:'https://chat.deepseek.com/'}];
+function pgAI(i){pgGen();const a=AIS[i],t=PG.out,ta=$('#po'),full=a.q?a.q+encodeURIComponent(t):'',direct=full&&full.length<=6000;
+try{ta.focus();ta.select();ta.setSelectionRange(0,t.length);document.execCommand('copy')}catch(e){}
+try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}
+window.open(direct?full:a.base,'_blank');
+$('#pm2').textContent=direct?'Opening '+a.n+' with the prompt filled in. A copy is on your clipboard too.':'Prompt copied. Paste it into '+a.n+(a.q?' (this prompt is too long to send through the link).':' (it has no prefill link).')}
 let PG={dm:'one',pp:40,mode:'pyq',exam:'NEET PG',ex2:'',year:'',from:1,to:50,n:50,mix:'mixed across all subjects in realistic exam proportions',diff:'moderate to hard, like recent papers',img:5,imgs:true,out:''};
 function applyTheme(v){if(v==='light'||v==='dark')document.documentElement.dataset.theme=v;else document.documentElement.removeAttribute('data-theme')}
 function setTheme(v){try{localStorage.setItem('mexTheme',v)}catch(e){}applyTheme(v)}
@@ -92,7 +98,8 @@ ${P.dm=='parts'?`<label>Questions per part</label><input type=number id=pp value
 <label style="font-weight:400"><input type=checkbox id=pu${P.imgs?' checked':''} onchange="pgRead();pg()"> Include image questions (direct image URLs)</label>
 <p><button class=pri onclick=pgGen()>Generate prompt</button></p>
 <textarea id=po rows=16 style="width:100%;background:var(--pan);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;font:13px/1.4 ui-monospace,monospace" placeholder="Your prompt appears here">${esc(P.out)}</textarea>
-<div class=row style="margin-top:8px"><button onclick=pgCopy()>Copy</button><button onclick=pgSave()>Download .txt</button><span class=mut id=pm2></span></div></div></div>`}
+<div class=row style="margin-top:8px"><button onclick=pgCopy()>Copy</button><button onclick=pgSave()>Download .txt</button><span class=mut id=pm2></span></div>
+<p class=mut style="margin:14px 0 6px">Open in an AI app (the prompt is copied as well):</p><div class=row>${AIS.map((a,i)=>`<button onclick="pgAI(${i})">${a.n}</button>`).join('')}</div></div></div>`}
 function pgGen(){pgRead();const P=PG,pyq=P.mode==='pyq',dm=P.dm,full=dm!=='batch',ex=P.exam==='Other / Custom'?(P.ex2||'[exam name]'):P.exam,size=SIZE[P.exam],custom=P.exam==='Other / Custom',opt=/USMLE/.test(P.exam)?'4 to 5 options, as in the real exam':'4 options (A to D) unless the real exam differs';
 const yr=P.year||'[exam session]',tt=yr.toLowerCase().includes(ex.toLowerCase())?yr:ex+' '+yr,parts=!custom?Math.ceil(size/P.pp):0,total=custom?'the real number of questions in that paper':size+' questions',cnt=P.to-P.from+1,part=Math.ceil(P.from/Math.max(cnt,1)),elen=dm==='one'?'1 to 2':'2 to 4';
 const report=`a completeness report: how many questions you recalled out of the expected total, the missing question numbers, counts of recalled / single-source / reconstructed / disputed, the keys you changed from the sources and why${P.imgs?', and which questions need an image I must add':''}`;
