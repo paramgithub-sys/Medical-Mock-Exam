@@ -1,0 +1,221 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Mock Exam Desk</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0b5d57"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Mock Exam"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{--bg:#eef1f0;--ink:#16211f;--mut:#5d6b68;--pan:#fff;--line:#cfd8d5;--acc:#0b5d57;--on:#fff;--soft:#e3efed;--bad:#b3261e;--good:#1b7a3d;--warn:#b26a00;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#111918;--ink:#e6eeec;--mut:#93a3a0;--pan:#1a2423;--line:#2f3d3b;--acc:#4fb8ae;--on:#08201d;--soft:#21352f;--bad:#ff8a80;--good:#6fd38d;--warn:#f0b35a;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#111918;--ink:#e6eeec;--mut:#93a3a0;--pan:#1a2423;--line:#2f3d3b;--acc:#4fb8ae;--on:#08201d;--soft:#21352f;--bad:#ff8a80;--good:#6fd38d;--warn:#f0b35a;color-scheme:dark}
+:root[data-theme=light]{color-scheme:light}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,sans-serif}
+button,select,input{font:inherit;color:inherit}button{background:var(--pan);border:1px solid var(--line);border-radius:6px;padding:8px 14px;cursor:pointer}
+button:hover{border-color:var(--acc)}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.pri{background:var(--acc);color:var(--on);border-color:var(--acc)}.dng{color:var(--bad)}
+.bar{position:sticky;top:0;z-index:5;display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:10px 16px;background:var(--acc);color:var(--on)}
+.bar button{background:transparent;color:var(--on);border-color:currentColor}.bar .pri{background:var(--on);color:var(--acc)}
+.tm{margin-left:auto;font:600 22px ui-monospace,monospace}
+.wrap{max-width:1100px;margin:16px auto;padding:0 12px;display:grid;grid-template-columns:1fr 260px;gap:14px}
+.one{max-width:820px;margin:16px auto;padding:0 12px}
+.card{background:var(--pan);border:1px solid var(--line);border-radius:8px;padding:18px;margin-bottom:14px}
+h1,h2,h3{margin:0 0 10px;font-family:Georgia,serif}.q{font:19px/1.6 Georgia,serif;margin:6px 0 16px}.meta,.mut{color:var(--mut);font-size:13px}
+.opt{display:flex;gap:12px;width:100%;text-align:left;margin-bottom:8px;padding:11px 14px}.opt i{font-style:normal;font-weight:700;min-width:20px}
+.sel{background:var(--soft);border-color:var(--acc)}.ok{border-color:var(--good);background:color-mix(in srgb,var(--good) 16%,transparent)}.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 16%,transparent)}
+.imgs{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}.imgs img{max-width:100%;max-height:340px;border:1px solid var(--line);border-radius:6px;cursor:zoom-in;background:#fff}.lb{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out}.lb img{max-width:96vw;max-height:96vh}
+.nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px;max-height:60vh;overflow:auto}.pal button{padding:6px 0}
+.an{background:var(--soft)}.mk{border:2px solid var(--warn)}.cu{outline:2px solid var(--acc)}
+table{width:100%;border-collapse:collapse}td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left}
+.big{font:700 38px Georgia,serif}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.row>*{flex:0 0 auto}
+label{display:block;margin:10px 0 4px;font-weight:600}input[type=text],input[type=number],select{width:100%;padding:8px;background:var(--pan);border:1px solid var(--line);border-radius:6px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}.stats div{border:1px solid var(--line);border-radius:6px;padding:10px}
+.ex{border-left:3px solid var(--acc);padding-left:12px;margin-top:10px}
+@media(max-width:780px){.wrap{grid-template-columns:1fr}}
+</style></head><body><div id="app"></div>
+<script>
+const EX={
+'NEET PG':{perQ:1.05,pos:4,neg:1,info:'200 MCQs, 3 h 30 min, +4 / −1'},
+'INI-CET':{perQ:0.9,pos:1,neg:1/3,info:'200 MCQs, 3 h (180 min), 4 sections of 50, +1 / −⅓'},
+'FMGE':{perQ:1,pos:1,neg:0,info:'300 MCQs, 5 h in two parts, +1, no negative'},
+'USMLE Step 1':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
+'USMLE Step 2 CK':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
+'NMCLE / Custom':{perQ:1,pos:1,neg:0,info:'Set your own marking and time'}};
+const $=s=>document.querySelector(s),L=i=>String.fromCharCode(65+i);
+const esc=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=s=>{s=Math.max(0,Math.round(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60);return(h?h+':':'')+String(m).padStart(h?2:1,'0')+':'+String(s%60).padStart(2,'0')};
+let D=[];try{D=JSON.parse(localStorage.getItem('mex')||'[]')}catch(e){}
+let S=null,T=null,draft=null;
+let FH=null,fstat='No data file connected. Data is kept in this browser only.',wq=Promise.resolve();
+function idb(m,k,v){return new Promise((res,rej)=>{const r=indexedDB.open('mexh',1);r.onupgradeneeded=()=>r.result.createObjectStore('h');r.onerror=()=>rej(r.error);r.onsuccess=()=>{const o=r.result.transaction('h',m==='get'?'readonly':'readwrite').objectStore('h'),x=m==='get'?o.get(k):o.put(v,k);x.onsuccess=()=>res(x.result);x.onerror=()=>rej(x.error)}})}
+function save(){try{localStorage.setItem('mex',JSON.stringify(D))}catch(e){}
+idb('put','D',JSON.stringify(D)).catch(()=>{});
+if(FH&&FH.ok){const snap=JSON.stringify({app:'MockExamDesk',saved:new Date().toISOString(),sessions:D},null,1);
+wq=wq.then(async()=>{try{const w=await FH.h.createWritable();await w.write(snap);await w.close();fstat='Saved to '+FH.h.name+' at '+new Date().toLocaleTimeString()}catch(e){FH.ok=false;fstat='Could not write to the file: '+e.message}const el=$('#fs');if(el)el.textContent=fstat})}}
+function parse(txt){const j=JSON.parse(txt),a=Array.isArray(j)?j:j.questions;if(!a||!a.length)throw'No questions found.';
+return{title:j.title||'',qs:a.map((x,i)=>{const o=x.options||x.choices,qt=x.q||x.question;if(!qt||!o||o.length<2)throw'Question '+(i+1)+' needs text and at least 2 options.';
+let k=x.answer;if(typeof k==='number')k--;else if(/^[A-Za-z]$/.test(String(k).trim()))k=String(k).trim().toUpperCase().charCodeAt(0)-65;else k=o.indexOf(k);
+if(!(k>=0&&k<o.length))throw'Question '+(i+1)+' has an invalid answer.';return{q:qt,o,k,sub:x.subject||'General',ex:x.explanation||'',img:[].concat(x.image||x.images||[]),eimg:[].concat(x.explanationImage||[])}})}}
+function home(){clearInterval(T);S=null;
+const rows=D.slice().reverse().map(s=>`<tr><td>${esc(s.name)}<div class=mut>${esc(s.exam)} · ${new Date(s.date).toLocaleDateString()}</div></td><td>${s.done?'Done · '+s.pct.toFixed(1)+'%':'In progress · '+(s.qs.filter((_,i)=>s.ans[i]!=null).length)+'/'+s.qs.length}</td>
+<td><button onclick="${s.done?'result':'resume'}('${s.id}')">${s.done?'View results':'Resume'}</button> <button class=dng onclick="del('${s.id}')">Delete</button></td></tr>`).join('');
+$('#app').innerHTML=`<div class=one><div class=row style="justify-content:space-between"><h1 style="margin:0">Mock Exam Desk</h1><span>${themeSel()} <button onclick=pg()>Prompt generator</button></span></div><p class=mut>Works offline. Everything is saved in this browser; start, pause and resume whenever you like.</p>
+<div class=card><h2>Start a new sitting</h2><label>Exam format</label><select id=ex onchange="fillEx()">${Object.keys(EX).map(k=>`<option>${k}</option>`).join('')}</select><div class=mut id=info></div>
+<label>Question paper (.json) plus any image files it refers to</label><input type=file id=f multiple accept=".json,application/json,image/*"><div class=mut>Select the .json and its images together (Ctrl/Shift-click). Images can also be embedded in the JSON as data: URIs.</div><button onclick="loadImgs()">Load images (internet needed once)</button><div class=mut id=ferr></div>
+<div class=row><div><label>Correct (+)</label><input type=number id=pos step=any></div><div><label>Wrong (−)</label><input type=number id=neg step=any></div><div><label>Minutes per question</label><input type=number id=pq step=any></div></div>
+<p><button class=pri onclick=start()>Start exam</button> <button onclick=sample()>Download sample paper</button></p></div>
+<div class=card><h2>Your sittings</h2>${rows?`<table>${rows}</table>`:'<p class=mut>No sittings yet.</p>'}</div>${trend()}<div class=card><h2>Data file</h2><p class=mut id=fs>${esc(fstat)}</p><div class=row>${FH&&!FH.ok?'<button class=pri onclick=reconnect()>Reconnect</button>':''}<button onclick=newFile()>Create data file</button><button onclick=openFile()>Open existing data file</button>${window.showSaveFilePicker?'':'<button onclick=bk()>Download backup</button><label class=mut style="margin:0">Restore backup <input type=file accept=.json onchange=imp(this)></label>'}</div><p class=mut>Answers, pauses and results are written to this file as you go, and it is a plain JSON file you can open anywhere. A synced folder (Drive, OneDrive) keeps it on other devices too.</p></div></div>`;fillEx();
+$('#f').onchange=async e=>{const fs=[...e.target.files],f=fs.find(x=>/\.json$/i.test(x.name));$('#ferr').textContent='';draft=null;if(!f)return;try{draft=parse(await f.text());draft.file=f.name;
+const im={},miss=[];$('#ferr').textContent='Reading paper…';for(const x of fs)if(x.type.startsWith('image/'))im[x.name.toLowerCase()]=await shrink(x);
+
+const rs=async a=>{const o=[];for(const r of a){const b=bn(r);if(/^data:/i.test(r))o.push(r);else if(im[b])o.push(im[b]);else if(/^https?:/i.test(r)){let c=null;try{c=await idb('get','img:'+r)}catch(e){}o.push(c||r)}else miss.push(r)}return o};
+for(const q of draft.qs){q.img=await rs(q.img);q.eimg=await rs(q.eimg)}
+imgStatus(miss)}catch(x){$('#ferr').textContent='Could not read file: '+(x.message||x)}}}
+const SIZE={'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
+const SUBJ='Medicine, Surgery, Obstetrics, Gynaecology, Paediatrics, Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, Microbiology, PSM, Forensic Medicine, ENT, Ophthalmology, Orthopaedics, Dermatology, Psychiatry, Anaesthesia, Radiology';
+let PG={dm:'one',pp:40,mode:'pyq',exam:'NEET PG',ex2:'',year:'',from:1,to:50,n:50,mix:'mixed across all subjects in realistic exam proportions',diff:'moderate to hard, like recent papers',img:5,imgs:true,out:''};
+function applyTheme(v){if(v==='light'||v==='dark')document.documentElement.dataset.theme=v;else document.documentElement.removeAttribute('data-theme')}
+function setTheme(v){try{localStorage.setItem('mexTheme',v)}catch(e){}applyTheme(v)}
+function themeSel(){let t='auto';try{t=localStorage.getItem('mexTheme')||'auto'}catch(e){}return`<select aria-label="Theme" style="width:auto" onchange="setTheme(this.value)">${[['auto','Theme: auto'],['light','Light'],['dark','Dark']].map(([k,l])=>`<option value=${k}${t===k?' selected':''}>${l}</option>`).join('')}</select>`}
+try{applyTheme(localStorage.getItem('mexTheme')||'auto')}catch(e){}
+function pgRead(){const g=i=>$('#'+i);if(!g('pe'))return;const v=(k,i,f)=>{if(g(i))PG[k]=f?f(g(i).value):g(i).value};v('exam','pe');v('ex2','pc',x=>x.trim());v('year','py',x=>x.trim());v('dm','pdm');v('pp','pp',x=>Math.max(10,+x||40));v('from','pf',x=>Math.max(1,+x||1));v('to','pt',x=>Math.max(1,+x||50));v('n','pn',x=>Math.max(1,+x||30));v('mix','px',x=>x.trim()||PG.mix);v('diff','pd',x=>x.trim()||PG.diff);v('img','pi',x=>Math.max(0,+x||0));if(g('pu'))PG.imgs=g('pu').checked}
+function pgTab(m){pgRead();PG.mode=m;PG.out='';pg()}
+function pg(){clearInterval(T);S=null;const P=PG,pyq=P.mode==='pyq',custom=P.exam==='Other / Custom',tab=(m,l)=>`<button class="${P.mode===m?'pri':''}" onclick="pgTab('${m}')">${l}</button>`;
+$('#app').innerHTML=`<div class=one><div class=row style="justify-content:space-between"><h1 style="margin:0">Prompt generator</h1><span>${themeSel()} <button onclick=home()>Back</button></span></div>
+<p class=mut>Builds a ready-to-paste prompt for any AI. The AI replies with a JSON paper that loads straight into this app.</p>
+<div class=row style="margin-bottom:12px">${tab('pyq','Previous-year paper')}${tab('prac','Practice paper')}</div>
+<div class=card><label>Exam</label><select id=pe onchange="pgRead();pg()">${Object.keys(SIZE).map(k=>`<option${P.exam===k?' selected':''}>${k}</option>`).join('')}</select>
+${custom?`<label>Exam name</label><input type=text id=pc value="${esc(P.ex2)}" placeholder="e.g. NMCLE, PLAB 1, AMC MCQ">`:''}
+${pyq?`<label>Exam session (be exact)</label><input type=text id=py value="${esc(P.year)}" placeholder="e.g. January 2025, or 5 Jan 2025 shift 1">
+<label>How should the AI send it?</label><select id=pdm onchange="pgRead();pg()"><option value=one${P.dm=='one'?' selected':''}>Complete paper in one reply (all at once)</option><option value=parts${P.dm=='parts'?' selected':''}>Complete paper in consecutive parts</option><option value=batch${P.dm=='batch'?' selected':''}>Only one batch of questions</option></select>
+${P.dm=='parts'?`<label>Questions per part</label><input type=number id=pp value=${P.pp} min=10>`:''}${P.dm=='batch'?`<div class=row><div><label>From question</label><input type=number id=pf value=${P.from} min=1></div><div><label>To question</label><input type=number id=pt value=${P.to} min=1></div></div>`:''}`
+:`<label>Number of questions</label><input type=number id=pn value=${P.n} min=1><label>Subject mix</label><input type=text id=px value="${esc(P.mix)}"><label>Difficulty</label><input type=text id=pd value="${esc(P.diff)}">${P.imgs?`<label>Image-based questions</label><input type=number id=pi value=${P.img} min=0>`:''}`}
+<label style="font-weight:400"><input type=checkbox id=pu${P.imgs?' checked':''} onchange="pgRead();pg()"> Include image questions (direct image URLs)</label>
+<p><button class=pri onclick=pgGen()>Generate prompt</button></p>
+<textarea id=po rows=16 style="width:100%;background:var(--pan);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px;font:13px/1.4 ui-monospace,monospace" placeholder="Your prompt appears here">${esc(P.out)}</textarea>
+<div class=row style="margin-top:8px"><button onclick=pgCopy()>Copy</button><button onclick=pgSave()>Download .txt</button><span class=mut id=pm2></span></div></div></div>`}
+function pgGen(){pgRead();const P=PG,pyq=P.mode==='pyq',dm=P.dm,full=dm!=='batch',ex=P.exam==='Other / Custom'?(P.ex2||'[exam name]'):P.exam,size=SIZE[P.exam],custom=P.exam==='Other / Custom',opt=/USMLE/.test(P.exam)?'4 to 5 options, as in the real exam':'4 options (A to D) unless the real exam differs';
+const yr=P.year||'[exam session]',tt=yr.toLowerCase().includes(ex.toLowerCase())?yr:ex+' '+yr,parts=!custom?Math.ceil(size/P.pp):0,total=custom?'the real number of questions in that paper':size+' questions',cnt=P.to-P.from+1,part=Math.ceil(P.from/Math.max(cnt,1)),elen=dm==='one'?'1 to 2':'2 to 4';
+const report=`a completeness report: how many questions you recalled out of the expected total, the missing question numbers, counts of recalled / single-source / reconstructed / disputed, the keys you changed from the sources and why${P.imgs?', and which questions need an image I must add':''}`;
+const deliv=dm==='one'?`
+DELIVERY: Send the complete paper in ONE reply: a single JSON code block with all questions in order. Keep each explanation to 1 or 2 sentences so the whole paper fits.
+- If you run out of space, do not shorten or skip questions. Stop after the last complete question, close the JSON correctly so it stays valid, and write "Stopped after question N" after the code block. When I reply "continue", send the remaining questions in a new JSON code block with the same title plus " (continued)". Never repeat earlier questions.
+- Before the code block write one short line saying which date/shift you used. After the final code block, add ${report}.
+`:dm==='parts'?`
+DELIVERY: Send the paper in consecutive parts of ${P.pp} questions${parts?' ('+parts+' parts in total)':''}. Part 1 = questions 1 to ${P.pp}, Part 2 = the next ${P.pp}, and so on.
+- Every part is ONE complete, valid JSON code block in the format below, with "Part k of m" in the title.
+- Before each code block write one short status line: "Part k of m: questions a to b (session used: date/shift)". Write nothing after the code block, then stop.
+- Do not continue until I reply "next". Never summarise, merge, shorten or skip ahead.
+- After the LAST part, add ${report}.
+`:'';
+const head=pyq?`You are an expert medical examiner and question-paper archivist. Rebuild a previous-year exam paper as valid JSON for my offline exam app.
+
+EXAM: ${ex}
+SESSION: ${yr}
+TASK: ${full?`Rebuild the COMPLETE paper of that exact session: every question, in the original order and numbering, exactly as it was asked, as far as it can be recalled from sources. Expected size: ${total}. Tell me if the real count differs.`:`Rebuild questions ${P.from} to ${P.to} of that exact session, in the original order and numbering, exactly as asked.`}
+EXACT SESSION: If that exam had several dates or shifts in that session, tell me in one line which one you are using (date and shift) and use only that one. Never mix questions from different shifts or sessions.
+${deliv}
+HOW TO SOURCE
+1. Search the web for the actual paper or reliable candidate recalls for this exact session. Use several sources and prefer ones that agree. Many bodies do not publish full official papers, so most material is recall-based.
+2. Aim for EVERY question number. Keep the original stem and options as closely as the source allows. Do not invent a question to fill a gap: if even the stem and a key cannot be recovered from sources, skip it and list its number as missing.
+3. Add "_no" (the original question number) and "_status" to every question: "recalled" (two or more sources agree on wording and key), "single-source", "reconstructed" (stem or options rebuilt by you; explain in "_note"), or "disputed" (sources disagree on the key; list the competing answers in "_note").
+4. Do not copy the key blindly. Check every answer against the standard textbook (Davidson's for medicine, Bailey & Love for surgery, the usual textbook for other subjects) and the LATEST official guideline. If the key is outdated or wrong, give the updated answer and explain it in "_note". Never change a key silently.
+5. Keep the original option order and the original key letter.`:`You are an expert medical examiner. Create a mock exam paper as ONE valid JSON file for my offline exam app.
+
+EXAM: ${ex}
+NUMBER OF QUESTIONS: ${P.n}
+SUBJECT MIX: ${P.mix}
+DIFFICULTY: ${P.diff}
+${P.imgs?'IMAGE QUESTIONS: about '+P.img+' of the '+P.n+' should be image-based (ECG, X-ray, CT, histology, smear, clinical photo, instrument, etc.)':'IMAGE QUESTIONS: none; every question must be answerable from text alone.'}
+
+CONTENT
+- Write original questions in the style of repeatedly tested past-year topics for this exam. Do not copy copyrighted question text verbatim. Use clinical vignettes where the real exam does.
+- Use Davidson's Principles and Practice of Medicine for medicine and Bailey & Love's Short Practice of Surgery for surgery. Use the standard textbook for every other subject and follow the latest official guidelines.
+- Double-check every answer key before you output. Randomise the correct letter so it is not mostly one letter.`;
+const title=pyq?(dm==='parts'?tt+' - Part 1 of '+(parts||'m'):dm==='batch'?tt+' - Part '+part:tt):ex+' Practice paper';
+const fmt=`OUTPUT FORMAT (${dm==='parts'?'each part is':'the JSON is'} exactly this structure, inside ONE code block${pyq?'':'; nothing before or after it'}):
+{"title":"${title}","questions":[
+ {${pyq?'"_no":1,':''}"q":"question text","options":["option A","option B","option C","option D"],"answer":"B","subject":"Medicine","explanation":"${elen} sentences: why the answer is right, why the main distractors are wrong, textbook reference, latest guideline if relevant"${pyq?',"_status":"recalled","_note":"only if reconstructed, disputed or the key was updated"':''}${P.imgs?',"image":"direct image URL","explanationImage":"optional direct image URL"':''}}
+]}
+
+RULES
+- "answer" is one capital letter that matches the position of the correct option. Options per question: ${opt}.
+- "subject": one fixed spelling per subject throughout (${SUBJ}).
+- Leave out any field that does not apply (for example no "image" on a text-only question). Never output empty values or null.
+- JSON validity: straight double quotes only, escape inner double quotes with a backslash, no trailing commas, no comments.`;
+const im=P.imgs?`
+
+IMAGE RULES
+- Use "image" only when the question depends on a picture. Give a DIRECT image URL (ending in .jpg, .jpeg, .png, .gif or .webp) that you have opened and confirmed shows the right finding.
+- Prefer Wikimedia Commons ORIGINAL file links (https://upload.wikimedia.org/wikipedia/commons/<h>/<hh>/<File_name>). Never use thumbnail links (no "/thumb/" and no "400px-" in the URL).
+- If you cannot browse the web or cannot find a matching image, do NOT invent a URL. Keep the question, omit "image", and describe the needed picture in "_note" so I can add it myself.
+- Never AI-generate clinical images (ECG, X-ray, CT, smear, histology, clinical photos). Only schematic diagrams may be drawn, as an inline SVG data URI.`:'';
+const tail=!pyq?`
+
+After the code block write nothing else.`:dm==='batch'?`
+
+FINAL MESSAGE (after the code block, plain text, short): how many questions you included and which numbers you skipped; counts of recalled / single-source / reconstructed / disputed; which keys you changed from the sources and why${P.imgs?'; which questions need an image I must add':''}.`:'';
+PG.out=head+'\n\n'+fmt+im+tail;$('#po').value=PG.out;$('#pm2').textContent='Prompt ready ('+PG.out.length+' characters).'}
+async function pgCopy(){const t=$('#po');if(!t.value)return pgGen(),pgCopy();try{await navigator.clipboard.writeText(t.value);$('#pm2').textContent='Copied.'}catch(e){t.select();document.execCommand('copy');$('#pm2').textContent='Copied.'}}
+function pgSave(){if(!$('#po').value)pgGen();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('#po').value],{type:'text/plain'}));a.download='exam-json-prompt.txt';a.click()}
+const bn=u=>{try{return decodeURIComponent(String(u).split('?')[0].split('/').pop()).toLowerCase()}catch(e){return String(u).toLowerCase()}};
+const pend=()=>draft?draft.qs.flatMap(q=>[...q.img,...q.eimg]).filter(u=>/^https?:/i.test(u)):[];
+function imgStatus(miss,extra){const n=draft.qs.reduce((a,q)=>a+q.img.length+q.eimg.length,0),p=pend();$('#ferr').textContent=draft.qs.length+' questions loaded from '+draft.file+'. '+(n?(n-p.length)+' of '+n+' image(s) ready offline':'No images in this paper')+(p.length?'; '+p.length+' still to download. Click "Load images" (internet needed once).':'.')+(miss&&miss.length?' Missing image files: '+[...new Set(miss)].join(', ')+'.':'')+(extra||'')}
+async function loadImgs(){if(!draft)return alert('Choose the paper first.');const urls=[...new Set(pend())];if(!urls.length)return imgStatus();const got={},bad=[];let k=0;
+for(const u of urls){$('#ferr').textContent='Downloading image '+(++k)+' of '+urls.length+'…';let d=null;
+for(const src of [u,'https://images.weserv.nl/?w=1400&url='+encodeURIComponent(u.replace(/^https?:\/\//i,''))]){try{const r=await fetch(src);if(!r.ok)throw 0;d=await shrink(await r.blob());if(d)break}catch(e){d=null}}
+if(d){got[u]=d;try{await idb('put','img:'+u,d)}catch(e){}}else bad.push(bn(u))}
+for(const q of draft.qs){q.img=q.img.map(u=>got[u]||u);q.eimg=q.eimg.map(u=>got[u]||u)}
+imgStatus(null,bad.length?' Could not download: '+[...new Set(bad)].join(', ')+'. Save those yourself and select them together with the .json.':' All images saved for offline use.')}
+function fillEx(){const e=EX[$('#ex').value];$('#info').textContent=e.info;$('#pos').value=e.pos;$('#neg').value=+e.neg.toFixed(3);$('#pq').value=e.perQ}
+function start(){if(!draft)return alert('Choose a question paper file first.');if(pend().length&&!confirm(pend().length+' image link(s) are not downloaded yet and will show only while online. Start anyway?\n(Cancel, then click Load images.)'))return;const ex=$('#ex').value,pq=+$('#pq').value||1;
+S={id:Date.now()+'',exam:ex,name:draft.title||draft.file,date:Date.now(),qs:draft.qs,ans:{},mk:{},qt:{},cur:0,el:0,pos:+$('#pos').value,neg:+$('#neg').value,dur:Math.round(draft.qs.length*pq*60),done:false};D.push(S);save();run()}
+function resume(id){S=D.find(s=>s.id===id);run()}
+function run(){clearInterval(T);exam();T=setInterval(()=>{S.el++;S.qt[S.cur]=(S.qt[S.cur]||0)+1;if(S.el%5==0)save();if(S.el>=S.dur){submit(true)}else tick()},1000)}
+function tick(){const t=$('#t');if(t){const r=S.dur-S.el;t.textContent=fmt(r);t.style.opacity=r<300&&r%2?.5:1}}
+function exam(){const q=S.qs[S.cur],a=S.ans[S.cur],n=Object.keys(S.ans).length;
+$('#app').innerHTML=`<header class=bar><b>${esc(S.exam)}</b><span>${esc(S.name)}</span><span class=tm id=t></span><button onclick=pause()>Pause &amp; save</button><button class=pri onclick=submit()>Submit</button></header>
+<div class=wrap><main class=card><div class=meta>Question ${S.cur+1} of ${S.qs.length}${S.mk[S.cur]?' · marked for review':''}</div><p class=q>${esc(q.q)}</p>${imgs(q.img)}
+${q.o.map((o,i)=>`<button class="opt${a===i?' sel':''}" onclick="pick(${i})"><i>${L(i)}</i><span>${esc(o)}</span></button>`).join('')}
+<div class=nav><button onclick="go(S.cur-1)">Previous</button><button onclick="go(S.cur+1)">Next</button><button onclick=mark()>${S.mk[S.cur]?'Unmark':'Mark for review'}</button><button onclick=clr()>Clear answer</button></div></main>
+<aside class=card><div class=pal>${S.qs.map((_,i)=>`<button class="${S.ans[i]!=null?'an':''} ${S.mk[i]?'mk':''} ${i==S.cur?'cu':''}" onclick="go(${i})">${i+1}</button>`).join('')}</div>
+<p class=mut>${n} answered · ${S.qs.length-n} unanswered · ${Object.keys(S.mk).filter(k=>S.mk[k]).length} marked<br>Keys: A–E answer, ← → move, M mark</p></aside></div>`;tick()}
+function pick(i){S.ans[S.cur]=i;save();exam()}function clr(){delete S.ans[S.cur];save();exam()}
+function mark(){S.mk[S.cur]=!S.mk[S.cur];save();exam()}function go(i){if(i<0||i>=S.qs.length)return;S.cur=i;save();exam()}
+function pause(){clearInterval(T);save();home()}
+function submit(auto){const n=S.qs.length-Object.keys(S.ans).length;if(!auto&&!confirm(n?n+' question(s) unanswered. Submit and see results?':'Submit and see results?'))return;
+clearInterval(T);let c=0,w=0;S.qs.forEach((q,i)=>{if(S.ans[i]!=null){S.ans[i]===q.k?c++:w++}});
+S.c=c;S.w=w;S.u=S.qs.length-c-w;S.marks=c*S.pos-w*S.neg;S.max=S.qs.length*S.pos;S.pct=c/S.qs.length*100;S.done=true;save();result(S.id)}
+function result(id,f='all'){S=D.find(s=>s.id===id);const sub={};
+S.qs.forEach((q,i)=>{const r=sub[q.sub]=sub[q.sub]||{n:0,c:0,w:0,t:0};r.n++;r.t+=S.qt[i]||0;if(S.ans[i]!=null)S.ans[i]===q.k?r.c++:r.w++});
+const show=i=>f=='all'||(f=='wrong'&&S.ans[i]!=null&&S.ans[i]!==S.qs[i].k)||(f=='skip'&&S.ans[i]==null)||(f=='mark'&&S.mk[i]);
+const usm=S.exam.startsWith('USMLE');
+$('#app').innerHTML=`<header class=bar><b>${esc(S.exam)} results</b><span>${esc(S.name)}</span><button style="margin-left:auto" onclick=home()>Back to home</button></header><div class=one>
+<div class=card><div class=big>${usm?S.pct.toFixed(1)+'% correct':S.marks.toFixed(2).replace(/\.?0+$/,'')+' / '+S.max}</div><p class=mut>${usm?'USMLE reports a 3-digit scaled score and pass/fail; this tool shows raw % correct only.':S.pct.toFixed(1)+'% answered correctly'}</p>
+<div class=stats><div><b>${S.c}</b><br>Correct</div><div><b>${S.w}</b><br>Wrong</div><div><b>${S.u}</b><br>Unanswered</div><div><b>${fmt(S.el)}</b><br>Time used of ${fmt(S.dur)}</div><div><b>${S.el&&S.c+S.w?Math.round(S.el/(S.c+S.w)):0}s</b><br>Avg per attempt</div></div></div>
+<div class=card><h2>Performance by subject</h2>${perf(sub)}<p class=mut>Dot is % correct and the shaded line is the 95% range for that many questions. Colours: green 70% and above, amber 50-69%, red below 50% (my own cut-offs, not official).</p><h2 style="margin-top:18px">Subject-wise analysis</h2><table><tr><th>Subject</th><th>Qs</th><th>Correct</th><th>Wrong</th><th>Accuracy</th><th>Avg time</th></tr>${Object.entries(sub).sort((a,b)=>a[1].c/a[1].n-b[1].c/b[1].n).map(([k,r])=>`<tr><td>${esc(k)}</td><td>${r.n}</td><td>${r.c}</td><td>${r.w}</td><td>${(r.c/r.n*100).toFixed(0)}%</td><td>${Math.round(r.t/r.n)}s</td></tr>`).join('')}</table><p class=mut>Weakest subjects are listed first.</p></div>
+<div class=card><h2>Time per question</h2>${tq()}<p class=mut>Green correct, red wrong, grey unanswered.</p></div><div class=card><div class=row><h2 style="margin:0">Review</h2>${[['all','All'],['wrong','Wrong'],['skip','Unanswered'],['mark','Marked']].map(([k,t])=>`<button class="${f==k?'pri':''}" onclick="result('${id}','${k}')">${t}</button>`).join('')}</div>
+${S.qs.map((q,i)=>show(i)?`<div class=ex style="margin-top:18px"><div class=meta>Q${i+1} · ${esc(q.sub)} · ${S.qt[i]||0}s</div><p class=q style="font-size:17px">${esc(q.q)}</p>${imgs(q.img)}${q.o.map((o,j)=>`<div class="opt ${j===q.k?'ok':S.ans[i]===j?'no':''}"><i>${L(j)}</i><span>${esc(o)}${S.ans[i]===j?' (your answer)':''}</span></div>`).join('')}${q.ex?`<p><b>Explanation:</b> ${esc(q.ex)}</p>`:''}${imgs(q.eimg)}</div>`:'').join('')}</div></div>`}
+function del(id){if(confirm('Delete this sitting permanently?')){D=D.filter(s=>s.id!==id);save();home()}}
+function dl(name,txt){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;a.click()}
+function bk(){dl('MockExamDesk-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify({app:'MockExamDesk',sessions:D}))}
+async function imp(i){try{const j=JSON.parse(await i.files[0].text());(j.sessions||j).forEach(x=>{const k=D.findIndex(d=>d.id===x.id);if(k<0)D.push(x);else if((x.done&&!D[k].done)||(!D[k].done&&x.el>D[k].el))D[k]=x});save();home()}catch(e){alert('Not a valid backup file.')}}
+const FT={types:[{description:'JSON',accept:{'application/json':['.json']}}]};
+async function useFile(h){FH={h,ok:true};try{await idb('put','h',h);const t=await(await h.getFile()).text();if(t.trim()){const j=JSON.parse(t);(j.sessions||[]).forEach(x=>{const i=D.findIndex(d=>d.id===x.id);if(i<0)D.push(x);else if((x.done&&!D[i].done)||(!D[i].done&&x.el>D[i].el))D[i]=x})}}catch(e){alert('That file is not Mock Exam Desk data.');FH=null;return}save();home()}
+async function newFile(){if(!window.showSaveFilePicker)return alert('This browser cannot save to a chosen file. Use Chrome or Edge.');try{await useFile(await showSaveFilePicker({suggestedName:'MockExamDesk-data.json',...FT}))}catch(e){}}
+async function openFile(){if(!window.showOpenFilePicker)return alert('This browser cannot open a chosen file. Use Chrome or Edge.');try{const[h]=await showOpenFilePicker(FT);await h.requestPermission({mode:'readwrite'});await useFile(h)}catch(e){}}
+async function reconnect(){try{if(await FH.h.requestPermission({mode:'readwrite'})==='granted')await useFile(FH.h)}catch(e){}}
+async function init(){try{const x=await idb('get','D');if(x)JSON.parse(x).forEach(y=>{const i=D.findIndex(d=>d.id===y.id);if(i<0)D.push(y);else if((y.done&&!D[i].done)||(!D[i].done&&y.el>D[i].el))D[i]=y})}catch(e){}try{const h=await idb('get','h');if(h){FH={h,ok:false};if(await h.queryPermission({mode:'readwrite'})==='granted'){await useFile(h);return}fstat='Data file "'+h.name+'" is remembered. Click Reconnect to allow access.'}}catch(e){}home()}
+function trend(){const d=D.filter(s=>s.done);if(d.length<2)return'';const W=640,H=180,p=34,x=i=>p+i*(W-2*p)/(d.length-1),y=v=>H-24-v*(H-44)/100;
+return`<div class=card><h2>Progress across sittings</h2><svg viewBox="0 0 ${W} ${H}" width=100% role=img aria-label="Percent correct by sitting">${[0,50,100].map(v=>`<line x1=${p} x2=${W-p} y1=${y(v)} y2=${y(v)} stroke="var(--line)"/><text x=4 y=${y(v)+4} font-size=11 fill="var(--mut)">${v}%</text>`).join('')}<polyline fill=none stroke="var(--acc)" stroke-width=2 points="${d.map((s,i)=>x(i)+','+y(s.pct)).join(' ')}"/>${d.map((s,i)=>`<circle cx=${x(i)} cy=${y(s.pct)} r=4 fill="var(--acc)"><title>${esc(s.name)}: ${s.pct.toFixed(1)}%</title></circle>`).join('')}</svg></div>`}
+const imgs=a=>a&&a.length?'<div class=imgs>'+a.map(u=>`<img src="${esc(u)}" alt="Question image" onclick="zoom(this.src)">`).join('')+'</div>':'';
+function zoom(u){const d=document.createElement('div');d.className='lb';d.innerHTML='<img alt="">';d.firstChild.src=u;d.onclick=()=>d.remove();document.body.appendChild(d)}
+function shrink(f){return new Promise(res=>{const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{const k=Math.min(1,1400/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);URL.revokeObjectURL(u);res(c.toDataURL(f.type==='image/png'?'image/png':'image/jpeg',.85))};i.onerror=()=>res(null);i.src=u})}
+function wil(c,n){const z=1.96,p=c/n,d=1+z*z/n,m=(p+z*z/(2*n))/d,h=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;return[Math.max(0,m-h)*100,Math.min(1,m+h)*100]}
+function perf(sub){const e=Object.entries(sub),rh=34,W=640,H=e.length*rh+34,x0=150,x=v=>x0+v*(W-x0-20)/100;
+return`<svg viewBox="0 0 ${W} ${H}" width=100% role=img aria-label="Performance by subject">${[0,25,50,75,100].map(v=>`<line x1=${x(v)} x2=${x(v)} y1=0 y2=${H-24} stroke="var(--line)"/><text x=${x(v)} y=${H-8} font-size=11 text-anchor=middle fill="var(--mut)">${v}%</text>`).join('')}${e.map(([k,r],i)=>{const a=r.c/r.n*100,[lo,hi]=wil(r.c,r.n),y=i*rh+rh/2,col=a>=70?'var(--good)':a>=50?'var(--warn)':'var(--bad)';return`<text x=${x0-8} y=${y+4} font-size=12 text-anchor=end fill="var(--ink)">${esc(k)}</text><line x1=${x(lo)} x2=${x(hi)} y1=${y} y2=${y} stroke="${col}" stroke-width=8 opacity=.3 stroke-linecap=round /><circle cx=${x(a)} cy=${y} r=6 fill="${col}"><title>${esc(k)}: ${a.toFixed(0)}% correct, 95% range ${lo.toFixed(0)}-${hi.toFixed(0)}%, n=${r.n}</title></circle>`}).join('')}</svg>`}
+function tq(){const m=Math.max(...S.qs.map((_,i)=>S.qt[i]||0),1),W=640,H=140,bw=(W-20)/S.qs.length;
+return`<svg viewBox="0 0 ${W} ${H}" width=100% role=img aria-label="Time per question">${S.qs.map((q,i)=>{const t=S.qt[i]||0,h=t/m*(H-30),c=S.ans[i]==null?'var(--mut)':S.ans[i]===q.k?'var(--good)':'var(--bad)';return`<rect x=${10+i*bw} y=${H-20-h} width=${Math.max(1,bw-2)} height=${h} fill="${c}"><title>Q${i+1}: ${t}s</title></rect>`}).join('')}<line x1=10 x2=${W-10} y1=${H-20} y2=${H-20} stroke="var(--line)"/><text x=10 y=${H-4} font-size=11 fill="var(--mut)">Question 1 to ${S.qs.length} (tallest bar ${m}s)</text></svg>`}
+function sample(){dl('sample-paper.json',JSON.stringify({title:'Sample paper',questions:[{q:'Which nerve is most commonly injured in a fracture of the surgical neck of the humerus?',options:['Radial','Axillary','Ulnar','Musculocutaneous'],answer:'B',subject:'Anatomy',explanation:'The axillary nerve winds around the surgical neck of the humerus.'},{q:'Sample image question: what text does the picture show?',image:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22220%22 height=%2290%22%3E%3Crect width=%22220%22 height=%2290%22 fill=%22%23dde%22/%3E%3Ctext x=%2220%22 y=%2255%22 font-size=%2222%22%3ESample image%3C/text%3E%3C/svg%3E',options:['Sample image','X-ray','ECG'],answer:'A',subject:'Format demo',explanation:'Use image for the question and explanationImage for the explanation. Either a file name (select the file along with the .json) or a data: URI works.'},{q:'First-line drug for anaphylaxis?',options:['Hydrocortisone','Chlorphenamine','Intramuscular adrenaline','Salbutamol','Atropine'],answer:'C',subject:'Medicine',explanation:'IM adrenaline is the first-line treatment.'}]},null,1))}
+document.addEventListener('keydown',e=>{if(!S||S.done||!$('#t')||/INPUT|SELECT/.test(e.target.tagName))return;const k=e.key.toUpperCase(),i=k.charCodeAt(0)-65;
+if(k.length==1&&i>=0&&i<S.qs[S.cur].o.length)pick(i);else if(k=='M')mark();else if(e.key=='ArrowRight')go(S.cur+1);else if(e.key=='ArrowLeft')go(S.cur-1)});
+addEventListener('pagehide',()=>{if(S&&!S.done)save()});
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(()=>{});if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+init();
+</script></body></html>
