@@ -37,6 +37,7 @@ const EX={
 'NEET PG':{perQ:1.05,pos:4,neg:1,info:'200 MCQs, 3 h 30 min, +4 / −1'},
 'INI-CET':{perQ:0.9,pos:1,neg:1/3,info:'200 MCQs, 3 h (180 min), 4 sections of 50, +1 / −⅓'},
 'FMGE':{perQ:1,pos:1,neg:0,info:'300 MCQs, 5 h in two parts, +1, no negative'},
+'Loksewa Medical Officer':{perQ:1.5,pos:2,neg:0.4,info:'Nepal PSC Medical Officer (8th level), Paper I MCQ: 20% negative marking, about 75 min. Check counts and marks against the latest PSC syllabus.'},
 'USMLE Step 1':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
 'USMLE Step 2 CK':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
 'NMCLE / Custom':{perQ:1,pos:1,neg:0,info:'Set your own marking and time'}};
@@ -65,7 +66,8 @@ $('#app').innerHTML=`<div class=one><div class=row style="justify-content:space-
 <p><button class=pri onclick=start()>Start exam</button> <button onclick=sample()>Download sample paper</button></p></div>
 <div class=card><h2>Your sittings</h2>${rows?`<table>${rows}</table>`:'<p class=mut>No sittings yet.</p>'}</div>${trend()}<div class=card><h2>Data file</h2><p class=mut id=fs>${esc(fstat)}</p><div class=row>${FH&&!FH.ok?'<button class=pri onclick=reconnect()>Reconnect</button>':''}<button onclick=newFile()>Create data file</button><button onclick=openFile()>Open existing data file</button>${window.showSaveFilePicker?'':'<button onclick=bk()>Download backup</button><label class=mut style="margin:0">Restore backup <input type=file accept=.json onchange=imp(this)></label>'}</div><p class=mut>Answers, pauses and results are written to this file as you go, and it is a plain JSON file you can open anywhere. A synced folder (Drive, OneDrive) keeps it on other devices too.</p></div></div>`;fillEx();
 $('#f').onchange=async e=>{const fs=[...e.target.files],f=fs.find(x=>/\.json$/i.test(x.name));$('#ferr').textContent='';draft=null;if(f)await loadPaper(await f.text(),f.name,fs)}}
-const SIZE={'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
+const SIZE={'Loksewa Medical Officer':50,'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
+const SUBJ_L='Medicine, Surgery, Obstetrics and Gynaecology, Paediatrics, Orthopaedics, ENT, Ophthalmology, Psychiatry, Dermatology, Anaesthesia and Emergency, Forensic Medicine, Community Medicine and Public Health, Health Management, Health Policy and Law, Pharmacology, Pathology, Microbiology, Radiology';
 const SUBJ='Medicine, Surgery, Obstetrics, Gynaecology, Paediatrics, Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, Microbiology, PSM, Forensic Medicine, ENT, Ophthalmology, Orthopaedics, Dermatology, Psychiatry, Anaesthesia, Radiology';
 const AIS=[{n:'Claude',base:'https://claude.ai/new',q:'https://claude.ai/new?q='},{n:'ChatGPT',base:'https://chatgpt.com/',q:'https://chatgpt.com/?q='},{n:'Perplexity',base:'https://www.perplexity.ai/',q:'https://www.perplexity.ai/search?q='},{n:'Grok',base:'https://grok.com/',q:'https://grok.com/?q='},{n:'Gemini',base:'https://gemini.google.com/app'},{n:'Copilot',base:'https://copilot.microsoft.com/'},{n:'DeepSeek',base:'https://chat.deepseek.com/'}];
 function pgAI(i){pgGen();const a=AIS[i],t=PG.out,ta=$('#po'),full=a.q?a.q+encodeURIComponent(t):'',direct=full&&full.length<=6000;
@@ -73,20 +75,24 @@ try{ta.focus();ta.select();ta.setSelectionRange(0,t.length);document.execCommand
 try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){}
 window.open(direct?full:a.base,'_blank');
 $('#pm2').textContent=direct?'Opening '+a.n+' with the prompt filled in. A copy is on your clipboard too.':'Prompt copied. Paste it into '+a.n+(a.q?' (this prompt is too long to send through the link).':' (it has no prefill link).')}
-let PG={dm:'one',pp:40,mode:'pyq',exam:'NEET PG',ex2:'',year:'',from:1,to:50,n:50,mix:'mixed across all subjects in realistic exam proportions',diff:'moderate to hard, like recent papers',img:5,imgs:true,out:''};
+let PG={la:'none',gov:true,web:true,lang:'English',dm:'one',pp:40,mode:'pyq',exam:'NEET PG',ex2:'',year:'',from:1,to:50,n:50,mix:'mixed across all subjects in realistic exam proportions',diff:'moderate to hard, like recent papers',img:5,imgs:true,out:''};
 function applyTheme(v){if(v==='light'||v==='dark')document.documentElement.dataset.theme=v;else document.documentElement.removeAttribute('data-theme')}
 function setTheme(v){try{localStorage.setItem('mexTheme',v)}catch(e){}applyTheme(v)}
 function themeSel(){let t='auto';try{t=localStorage.getItem('mexTheme')||'auto'}catch(e){}return`<select aria-label="Theme" style="width:auto" onchange="setTheme(this.value)">${[['auto','Theme: auto'],['light','Light'],['dark','Dark']].map(([k,l])=>`<option value=${k}${t===k?' selected':''}>${l}</option>`).join('')}</select>`}
 try{applyTheme(localStorage.getItem('mexTheme')||'auto')}catch(e){}
-function pgRead(){const g=i=>$('#'+i);if(!g('pe'))return;const v=(k,i,f)=>{if(g(i))PG[k]=f?f(g(i).value):g(i).value};v('exam','pe');v('ex2','pc',x=>x.trim());v('year','py',x=>x.trim());v('dm','pdm');v('pp','pp',x=>Math.max(10,+x||40));v('from','pf',x=>Math.max(1,+x||1));v('to','pt',x=>Math.max(1,+x||50));v('n','pn',x=>Math.max(1,+x||30));v('mix','px',x=>x.trim()||PG.mix);v('diff','pd',x=>x.trim()||PG.diff);v('img','pi',x=>Math.max(0,+x||0));if(g('pu'))PG.imgs=g('pu').checked}
+function pgRead(){const g=i=>$('#'+i);if(!g('pe'))return;const v=(k,i,f)=>{if(g(i))PG[k]=f?f(g(i).value):g(i).value};v('exam','pe');v('la','pla');v('lang','plg');if(g('pgv'))PG.gov=g('pgv').checked;if(g('pwb'))PG.web=g('pwb').checked;v('ex2','pc',x=>x.trim());v('year','py',x=>x.trim());v('dm','pdm');v('pp','pp',x=>Math.max(10,+x||40));v('from','pf',x=>Math.max(1,+x||1));v('to','pt',x=>Math.max(1,+x||50));v('n','pn',x=>Math.max(1,+x||30));v('mix','px',x=>x.trim()||PG.mix);v('diff','pd',x=>x.trim()||PG.diff);v('img','pi',x=>Math.max(0,+x||0));if(g('pu'))PG.imgs=g('pu').checked}
 function pgTab(m){pgRead();PG.mode=m;PG.out='';pg()}
-function pg(){clearInterval(T);S=null;const P=PG,pyq=P.mode==='pyq',custom=P.exam==='Other / Custom',tab=(m,l)=>`<button class="${P.mode===m?'pri':''}" onclick="pgTab('${m}')">${l}</button>`;
+function pg(){clearInterval(T);S=null;const P=PG,pyq=P.mode==='pyq',custom=P.exam==='Other / Custom',lok=P.exam==='Loksewa Medical Officer',tab=(m,l)=>`<button class="${P.mode===m?'pri':''}" onclick="pgTab('${m}')">${l}</button>`;
 $('#app').innerHTML=`<div class=one><div class=row style="justify-content:space-between"><h1 style="margin:0">Prompt generator</h1><span>${themeSel()} <button onclick=home()>Back</button></span></div>
 <p class=mut>Builds a ready-to-paste prompt for any AI. The AI replies with a JSON paper that loads straight into this app.</p>
 <div class=row style="margin-bottom:12px">${tab('pyq','Previous-year paper')}${tab('prac','Practice paper')}</div>
 <div class=card><label>Exam</label><select id=pe onchange="pgRead();pg()">${Object.keys(SIZE).map(k=>`<option${P.exam===k?' selected':''}>${k}</option>`).join('')}</select>
 ${custom?`<label>Exam name</label><input type=text id=pc value="${esc(P.ex2)}" placeholder="e.g. NMCLE, PLAB 1, AMC MCQ">`:''}
-${pyq?`<label>Exam session (be exact)</label><input type=text id=py value="${esc(P.year)}" placeholder="e.g. January 2025, or 5 Jan 2025 shift 1">
+${lok?`<h3 style="margin-top:16px">Loksewa options</h3><label>Research on the web and government websites</label><select id=pla><option value=none${P.la=='none'?' selected':''}>No research step (just the paper)</option><option value=first${P.la=='first'?' selected':''}>Analyse first, then build the paper (two replies)</option><option value=only${P.la=='only'?' selected':''}>Analysis report only (no paper)</option></select>
+<label style="font-weight:400"><input type=checkbox id=pgv${P.gov?' checked':''}> Official government websites (Lok Sewa Aayog psc.gov.np, provincial PSC sites, Ministry of Health and Population)</label>
+<label style="font-weight:400"><input type=checkbox id=pwb${P.web?' checked':''}> Other web sources (exam-prep sites, past-question compilations)</label>
+<label>Question language</label><select id=plg>${['English','Nepali','English and Nepali'].map(k=>`<option${P.lang===k?' selected':''}>${k}</option>`).join('')}</select>`:''}
+${pyq?`<label>Exam session (be exact)</label><input type=text id=py value="${esc(P.year)}" placeholder="${lok?'e.g. 2081/82 (BS), advertisement number if known':'e.g. January 2025, or 5 Jan 2025 shift 1'}">
 <label>How should the AI send it?</label><select id=pdm onchange="pgRead();pg()"><option value=one${P.dm=='one'?' selected':''}>Complete paper in one reply (all at once)</option><option value=parts${P.dm=='parts'?' selected':''}>Complete paper in consecutive parts</option><option value=batch${P.dm=='batch'?' selected':''}>Only one batch of questions</option></select>
 ${P.dm=='parts'?`<label>Questions per part</label><input type=number id=pp value=${P.pp} min=10>`:''}${P.dm=='batch'?`<div class=row><div><label>From question</label><input type=number id=pf value=${P.from} min=1></div><div><label>To question</label><input type=number id=pt value=${P.to} min=1></div></div>`:''}`
 :`<label>Number of questions</label><input type=number id=pn value=${P.n} min=1><label>Subject mix</label><input type=text id=px value="${esc(P.mix)}"><label>Difficulty</label><input type=text id=pd value="${esc(P.diff)}">${P.imgs?`<label>Image-based questions</label><input type=number id=pi value=${P.img} min=0>`:''}`}
@@ -109,6 +115,22 @@ DELIVERY: Send the paper in consecutive parts of ${P.pp} questions${parts?' ('+p
 - Do not continue until I reply "next". Never summarise, merge, shorten or skip ahead.
 - After the LAST part, add ${report}.
 `:'';
+const lok=P.exam==='Loksewa Medical Officer',lang=P.lang||'English';
+const lokCtx=lok?`EXAM CONTEXT (verify every point against the latest official syllabus before using it): Nepal Public Service Commission (Lok Sewa Aayog), Nepal Health Service, General Health Services group, Medical Officer, 8th level, open competitive exam. Written exam of two papers (Paper I objective MCQs with 20% negative marking, Paper II subjective), followed by a group test and interview. Candidates need an MBBS or equivalent degree. Provincial PSCs run similar exams for provincial posts. Do not assume the numbers above are current: confirm them and tell me if they differ.
+LANGUAGE: ${lang==='Nepali'?'write questions, options and explanations in Nepali (Devanagari), keeping standard medical terms and drug names in English':lang==='English and Nepali'?'give every question and each option in English followed by the Nepali translation in the same string':'write in English'}.
+NEPAL CONTENT: where a question concerns Nepal\'s health system, programmes, policy or law, use the current official Nepali documents and guidelines, not generic WHO or Indian references.`:'';
+const lokSrc=lok&&P.la!=='none'?`RESEARCH SOURCES
+${P.gov?'- Official: Lok Sewa Aayog (psc.gov.np: syllabus PDFs, notices, results, and any published question papers), the provincial PSC websites for provincial Medical Officer posts, the Ministry of Health and Population (mohp.gov.np) and the Nepal Medical Council. Prefer these over everything else and cite the exact page or PDF.\n':''}${P.web?'- Web: exam-prep and recall sources for past questions. Treat them as unofficial and cross-check them against each other and against the syllabus.\n':''}${!P.gov&&!P.web?'- Use any sources you can open.\n':''}- Open every page you cite. If a source cannot be opened, say so instead of guessing.
+- Use the latest syllabus version. Law and policy amendments made shortly before the exam date count as part of the syllabus.`:'';
+const lokAn=lok&&P.la!=='none'?`ANALYSIS TASKS
+1. Exam scheme: papers, marks, number of questions, time, marking scheme (including negative marking), pass marks, interview marks and language. Quote the source for each and flag any conflict between sources.
+2. Syllabus: section-wise marks and the topic list for each paper, and what changed in the latest version.
+3. Past-question trends: for every year you can find (give the BS year and the AD year), the number of questions per subject and per topic, topics asked repeatedly, difficulty and question style.
+4. Nepal-specific content: health policy, law and programme questions (for example the Health Services Act, the National Health Policy and national guidelines) and which current documents to use.
+5. Priority list: topics ranked by expected yield, with a one-line reason each.
+6. Gaps and uncertainty: what you could not find or verify.
+Use short tables where helpful, give the URL and access date for every source, and never present recalled material as official.`:'';
+if(lok&&P.la==='only'){PG.out='You are a research analyst and medical educator. Produce an analysis report (not a question paper) for this exam.\n\nEXAM: '+ex+(pyq&&P.year?'\nFOCUS YEAR / SESSION: '+P.year:'')+'\n\n'+lokCtx+'\n\n'+lokSrc+'\n\n'+lokAn+'\n\nOUTPUT: a structured report in plain text with short tables. Do NOT produce JSON or practice questions. After the report, tell me which settings you would recommend for building a practice paper.';$('#po').value=PG.out;$('#pm2').textContent='Analysis prompt ready ('+PG.out.length+' characters).';return}
 const head=pyq?`You are an expert medical examiner and question-paper archivist. Rebuild a previous-year exam paper as valid JSON for my offline exam app.
 
 EXAM: ${ex}
@@ -141,7 +163,7 @@ const fmt=`OUTPUT FORMAT (${dm==='parts'?'each part is':'the JSON is'} exactly t
 
 RULES
 - "answer" is one capital letter that matches the position of the correct option. Options per question: ${opt}.
-- "subject": one fixed spelling per subject throughout (${SUBJ}).
+- "subject": one fixed spelling per subject throughout (${lok?SUBJ_L:SUBJ}).
 - Leave out any field that does not apply (for example no "image" on a text-only question). Never output empty values or null.
 - JSON validity: straight double quotes only, escape inner double quotes with a backslash, no trailing commas, no comments.`;
 const im=P.imgs?`
@@ -156,7 +178,8 @@ const tail=!pyq?`
 After the code block write nothing else.`:dm==='batch'?`
 
 FINAL MESSAGE (after the code block, plain text, short): how many questions you included and which numbers you skipped; counts of recalled / single-source / reconstructed / disputed; which keys you changed from the sources and why${P.imgs?'; which questions need an image I must add':''}.`:'';
-PG.out=head+'\n\n'+fmt+im+tail;$('#po').value=PG.out;$('#pm2').textContent='Prompt ready ('+PG.out.length+' characters).'}
+const steps=lok&&P.la==='first'?'\n\nWORKFLOW: STEP 1: reply with the analysis report only (no JSON). STEP 2: when I reply "build", send the paper in the OUTPUT FORMAT below, using your analysis to set the subject mix, difficulty and pattern. The "return only JSON" rules apply to Step 2 only.':'';
+PG.out=head+(lok?'\n\n'+lokCtx+(lokSrc?'\n\n'+lokSrc:'')+(P.la==='first'?'\n\n'+lokAn:'')+steps:'')+'\n\n'+fmt+im+tail;$('#po').value=PG.out;$('#pm2').textContent='Prompt ready ('+PG.out.length+' characters).'}
 async function pgCopy(){const t=$('#po');if(!t.value)return pgGen(),pgCopy();try{await navigator.clipboard.writeText(t.value);$('#pm2').textContent='Copied.'}catch(e){t.select();document.execCommand('copy');$('#pm2').textContent='Copied.'}}
 function pgSave(){if(!$('#po').value)pgGen();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([$('#po').value],{type:'text/plain'}));a.download='exam-json-prompt.txt';a.click()}
 function jparse(t){t=String(t).replace(/^\uFEFF/,'').replace(/```[a-zA-Z]*/g,'');const a=t.search(/[\[{]/),b=Math.max(t.lastIndexOf('}'),t.lastIndexOf(']'));if(a>=0&&b>a)t=t.slice(a,b+1);try{return JSON.parse(t)}catch(e){try{return JSON.parse(t.replace(/[\u201C\u201D]/g,'"'))}catch(e2){throw'Invalid JSON ('+e.message+'). Check for a missing comma, quote or bracket, or text cut off at the end.'}}}

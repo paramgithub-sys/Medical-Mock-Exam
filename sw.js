@@ -1,5 +1,5 @@
 // Bump V whenever you replace index.html so devices pick up the new version.
-const V='mexd-v7',F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
+const V='mexd-v8',F=['./','index.html','manifest.json','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(F)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==V&&x!=='mexd-img').map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!=='GET')return;
