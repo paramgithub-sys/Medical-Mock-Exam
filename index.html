@@ -37,7 +37,7 @@ const EX={
 'NEET PG':{perQ:1.05,pos:4,neg:1,info:'200 MCQs, 3 h 30 min, +4 / −1'},
 'INI-CET':{perQ:0.9,pos:1,neg:1/3,info:'200 MCQs, 3 h (180 min), 4 sections of 50, +1 / −⅓'},
 'FMGE':{perQ:1,pos:1,neg:0,info:'300 MCQs, 5 h in two parts, +1, no negative'},
-'Loksewa Medical Officer':{perQ:1.5,pos:2,neg:0.4,info:'Nepal PSC Medical Officer (8th level), Paper I MCQ: 20% negative marking, about 75 min. Check counts and marks against the latest PSC syllabus.'},
+'Loksewa Medical Officer':{perQ:0.75,pos:1,neg:0.2,info:'Nepal PSC Medical Officer (8th level) Paper I: 100 MCQs x 1 mark, 75 min, 20% negative marking (0.2 per wrong answer), pass mark 40/100.'},
 'USMLE Step 1':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
 'USMLE Step 2 CK':{perQ:1.5,pos:1,neg:0,info:'40-question blocks of 60 min; reports % correct, no negative'},
 'NMCLE / Custom':{perQ:1,pos:1,neg:0,info:'Set your own marking and time'}};
@@ -66,7 +66,8 @@ $('#app').innerHTML=`<div class=one><div class=row style="justify-content:space-
 <p><button class=pri onclick=start()>Start exam</button> <button onclick=sample()>Download sample paper</button></p></div>
 <div class=card><h2>Your sittings</h2>${rows?`<table>${rows}</table>`:'<p class=mut>No sittings yet.</p>'}</div>${trend()}<div class=card><h2>Data file</h2><p class=mut id=fs>${esc(fstat)}</p><div class=row>${FH&&!FH.ok?'<button class=pri onclick=reconnect()>Reconnect</button>':''}<button onclick=newFile()>Create data file</button><button onclick=openFile()>Open existing data file</button>${window.showSaveFilePicker?'':'<button onclick=bk()>Download backup</button><label class=mut style="margin:0">Restore backup <input type=file accept=.json onchange=imp(this)></label>'}</div><p class=mut>Answers, pauses and results are written to this file as you go, and it is a plain JSON file you can open anywhere. A synced folder (Drive, OneDrive) keeps it on other devices too.</p></div></div>`;fillEx();
 $('#f').onchange=async e=>{const fs=[...e.target.files],f=fs.find(x=>/\.json$/i.test(x.name));$('#ferr').textContent='';draft=null;if(f)await loadPaper(await f.text(),f.name,fs)}}
-const SIZE={'Loksewa Medical Officer':50,'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
+const SIZE={'Loksewa Medical Officer':100,'NEET PG':200,'INI-CET':200,'FMGE':300,'USMLE Step 1':280,'USMLE Step 2 CK':318,'Other / Custom':100};
+const DEFMIX='mixed across all subjects in realistic exam proportions';
 const SUBJ_L='Medicine, Surgery, Obstetrics and Gynaecology, Paediatrics, Orthopaedics, ENT, Ophthalmology, Psychiatry, Dermatology, Anaesthesia and Emergency, Forensic Medicine, Community Medicine and Public Health, Health Management, Health Policy and Law, Pharmacology, Pathology, Microbiology, Radiology';
 const SUBJ='Medicine, Surgery, Obstetrics, Gynaecology, Paediatrics, Anatomy, Physiology, Biochemistry, Pathology, Pharmacology, Microbiology, PSM, Forensic Medicine, ENT, Ophthalmology, Orthopaedics, Dermatology, Psychiatry, Anaesthesia, Radiology';
 const AIS=[{n:'Claude',base:'https://claude.ai/new',q:'https://claude.ai/new?q='},{n:'ChatGPT',base:'https://chatgpt.com/',q:'https://chatgpt.com/?q='},{n:'Perplexity',base:'https://www.perplexity.ai/',q:'https://www.perplexity.ai/search?q='},{n:'Grok',base:'https://grok.com/',q:'https://grok.com/?q='},{n:'Gemini',base:'https://gemini.google.com/app'},{n:'Copilot',base:'https://copilot.microsoft.com/'},{n:'DeepSeek',base:'https://chat.deepseek.com/'}];
@@ -116,7 +117,7 @@ DELIVERY: Send the paper in consecutive parts of ${P.pp} questions${parts?' ('+p
 - After the LAST part, add ${report}.
 `:'';
 const lok=P.exam==='Loksewa Medical Officer',lang=P.lang||'English';
-const lokCtx=lok?`EXAM CONTEXT (verify every point against the latest official syllabus before using it): Nepal Public Service Commission (Lok Sewa Aayog), Nepal Health Service, General Health Services group, Medical Officer, 8th level, open competitive exam. Written exam of two papers (Paper I objective MCQs with 20% negative marking, Paper II subjective), followed by a group test and interview. Candidates need an MBBS or equivalent degree. Provincial PSCs run similar exams for provincial posts. Do not assume the numbers above are current: confirm them and tell me if they differ.
+const lokCtx=lok?`EXAM CONTEXT (verify every point against the latest official syllabus before using it): Nepal Public Service Commission (Lok Sewa Aayog), Nepal Health Service, General Health Services group, Medical Officer, 8th level, open competitive exam. Scheme in the PSC syllabus I checked: Paper I (General Health Services) = 100 MCQs x 1 mark, 1 hour 15 minutes, 20% of a question's marks deducted per wrong answer (0.2), no marks for unanswered, no calculator, pass mark 40/100. Paper II = subjective, 10 questions x 10 marks, 3 hours. Then a group discussion (10 marks) and interview (30 marks). Paper I question counts per syllabus group: Medicine 10, Psychiatry 5, Dermatology and STD 5, Pharmacology 5, Emergency Medicine 5 (Section A, 30); General Surgery 10, Ophthalmology + ENT + Dental 10, Orthopaedics + Anaesthesia + Pathology 10 (Section B, 30); Obstetrics and Gynaecology 10, Paediatrics 10 (Section C, 20); Community Medicine 10, Forensic Medicine + Health Acts 10 (Section D, 20). Laws and policies in force three months before the exam date count as syllabus. Candidates need an MBBS or equivalent degree. Provincial PSCs run similar exams for provincial posts with their own syllabuses. Confirm these points against the latest official PSC syllabus and tell me if anything differs.
 LANGUAGE: ${lang==='Nepali'?'write questions, options and explanations in Nepali (Devanagari), keeping standard medical terms and drug names in English':lang==='English and Nepali'?'give every question and each option in English followed by the Nepali translation in the same string':'write in English'}.
 NEPAL CONTENT: where a question concerns Nepal\'s health system, programmes, policy or law, use the current official Nepali documents and guidelines, not generic WHO or Indian references.`:'';
 const lokSrc=lok&&P.la!=='none'?`RESEARCH SOURCES
@@ -131,6 +132,7 @@ const lokAn=lok&&P.la!=='none'?`ANALYSIS TASKS
 6. Gaps and uncertainty: what you could not find or verify.
 Use short tables where helpful, give the URL and access date for every source, and never present recalled material as official.`:'';
 if(lok&&P.la==='only'){PG.out='You are a research analyst and medical educator. Produce an analysis report (not a question paper) for this exam.\n\nEXAM: '+ex+(pyq&&P.year?'\nFOCUS YEAR / SESSION: '+P.year:'')+'\n\n'+lokCtx+'\n\n'+lokSrc+'\n\n'+lokAn+'\n\nOUTPUT: a structured report in plain text with short tables. Do NOT produce JSON or practice questions. After the report, tell me which settings you would recommend for building a practice paper.';$('#po').value=PG.out;$('#pm2').textContent='Analysis prompt ready ('+PG.out.length+' characters).';return}
+const mixTxt=lok&&P.mix===DEFMIX?'follow the official Paper I blueprint per 100 questions (Medicine 10, Psychiatry 5, Dermatology and STD 5, Pharmacology 5, Emergency Medicine 5, General Surgery 10, Ophthalmology + ENT + Dental 10, Orthopaedics + Anaesthesia + Pathology 10, Obstetrics and Gynaecology 10, Paediatrics 10, Community Medicine 10, Forensic Medicine + Health Acts 10), scaled to the number of questions':P.mix;
 const head=pyq?`You are an expert medical examiner and question-paper archivist. Rebuild a previous-year exam paper as valid JSON for my offline exam app.
 
 EXAM: ${ex}
@@ -147,7 +149,7 @@ HOW TO SOURCE
 
 EXAM: ${ex}
 NUMBER OF QUESTIONS: ${P.n}
-SUBJECT MIX: ${P.mix}
+SUBJECT MIX: ${mixTxt}
 DIFFICULTY: ${P.diff}
 ${P.imgs?'IMAGE QUESTIONS: about '+P.img+' of the '+P.n+' should be image-based (ECG, X-ray, CT, histology, smear, clinical photo, instrument, etc.)':'IMAGE QUESTIONS: none; every question must be answerable from text alone.'}
 
